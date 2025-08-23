@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Decks 'N' Choices</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #000000;
+      --text: #e9e9e9;
+      --muted: #bdbdbd;
+      --card: #111216;
+      --cardTop: #23272b;
+      --accent: #2dd4bf;
+      --ok: #22c55e;
+      --no: #ef4444;
+      --shadow: rgba(0,0,0,0.55);
+      --card-radius: 14px;
+    }
+
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; margin:0; font-family:'Share Tech', sans-serif; background:var(--bg); color:var(--text); }
+    .pergBox{ width: min(1100px, 96%); margin: 36px auto; padding: 6px; }
+
+    .topArea{
+      display:flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    #botaoDiff{
+      display:flex;
+      gap:10px;
+      justify-content: center;
+      flex-wrap:wrap;
+    }
+    #botaoDiff button, #botoesControle button, #gameOverScreen button{
+      background:#15181b;
+      border: 1px solid rgba(255,255,255,0.03);
+      color:var(--text);
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.6);
+      transition: transform .12s ease, background .12s ease;
+      font-family: 'Share Tech', sans-serif;
+    }
+    #botaoDiff button:hover, #botoesControle button:hover, #gameOverScreen button:hover{ transform: translateY(-3px); }
+
+    #perguntaTopo{
+      background: linear-gradient(180deg,#0e1113,#131516);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 14px 30px var(--shadow);
+      font-size: 20px;
+      line-height:1.3;
+      text-align: center;
+      min-height: 66px;
+    }
+
+    #respostas{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap:18px;
+      margin-top: 18px;
+    }
+    @media (max-width: 700px){
+      #respostas{ grid-template-columns: 1fr; }
+    }
+
+    .respBtn{
+      display:grid;
+      grid-template-rows: 96px 1fr;
+      border:0;
+      background: var(--card);
+      border-radius: var(--card-radius);
+      overflow:hidden;
+      cursor:pointer;
+      box-shadow: 0 18px 36px rgba(0,0,0,0.65);
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+      color:var(--text);
+    }
+    .respBtn .top{
+      background: var(--cardTop);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      padding:10px;
+    }
+    .badge{
+      position:absolute;
+      top:12px;
+      left:12px;
+      width:44px; height:44px;
+      border-radius:10px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.03);
+      display:flex; align-items:center; justify-content:center;
+      font-size:45px; color:var(--accent); letter-spacing:1px;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.6);
+      font-family:'Share Tech', sans-serif;
+    }
+    .respBtn .txt{
+      display:flex; align-items:center; justify-content:center;
+      padding:14px; text-align:center; font-size:16px; line-height:1.3;
+    }
+    .respBtn:hover{
+      transform: translateY(-8px);
+      box-shadow: 0 28px 48px rgba(0,0,0,0.7);
+      background: #141618;
+    }
+    button:disabled{ opacity:0.7; cursor:default; }
+
+    #mensagem{ margin-top:12px; min-height:1.2em; font-weight:700; text-align:center; }
+    #mensagem.ok{ color: var(--ok); }
+    #mensagem.no{ color: var(--no); }
+
+    #botoesControle{ display:none; gap:10px; margin-top:8px; justify-content:center; }
+
+    #gameOverScreen{ display:none; text-align:center; margin-top:40px; }
+
+    @media (max-width:480px){
+      #perguntaTopo{ font-size:16px; padding:12px; min-height:64px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="pergBox">
+    <div id="perguntaTopo">Escolha uma dificuldade para começar.</div>
+  </div>
+    
+  <div class="topArea">
+    <div id="botaoDiff">
+      <button onclick="diffSelect('difFacil')">Fácil</button>
+      <button onclick="diffSelect('difMedio')">Médio</button>
+      <button onclick="diffSelect('difHard')">Difícil</button>
+    </div>
+    
+    <div id="quizDNC"></div>
+
+    <div id="botoesControle">
+      <button id="voltarBtn">Voltar</button>
+      <button id="recomecarBtn">Recomeçar</button>
+    </div>
+
+    <div id="mensagem" aria-live="polite"></div>
+  </div>
+
+  <div id="gameOverScreen">
+    <h2>Parabéns! Você completou todas as dificuldades!</h2>
+    <button id="recomecarGameBtn">Recomeçar o jogo?</button>
+    <button id="zerarGameBtn">Finalizar o jogo</button>
+  </div>
+
+  <script>
+    const perguntas = {
+      difFacil:[
+        { pergunta: "Quem é considerado o Pai da Computação/Programação?", respostas: ["Bill Gates","Alan Turing","Mark Zuckerberg"], correta: 1 },
+        { pergunta: "Qual símbolo usamos para comentar uma linha em JavaScript?", respostas: ["//","/* */","#"], correta: 0 },
+        { pergunta: "Qual é a saída de 2 + 2 em JavaScript?", respostas: ["22","4","Não há como fazer conta em JavaScript"], correta: 1 },
+        { pergunta: "O que significa 'HTML'?", respostas: ["HyperText Markup Language","HighText Machine Language","Hyperlinks and Text Markup"], correta: 0 },
+        { pergunta: "Qual linguagem é conhecida por ser usada em Android?", respostas: ["Java","Swift","PHP"], correta: 0 }
+      ],
+      difMedio:[
+        { pergunta: "Qual a função de uma <div> em HTML?", respostas: ["Agrupar e organizar elementos de uma página WEB","Deixar o texto em negrito","Criar links acessíveis ao usuário"], correta: 0 },
+        { pergunta: "Qual a diferença entre '==' e '===' no JavaScript?", respostas: ["Não há diferença","'==' compara valor, '===' compara valor e tipo","'===' compara só valor"], correta: 1 },
+        { pergunta: "O que é um 'array'?", respostas: ["Uma função","Uma lista de elementos","Um tipo de loop"], correta: 1 },
+        { pergunta: "Qual dessas linguagens é tipada dinamicamente?", respostas: ["C","Python","Java"], correta: 1 },
+        { pergunta: "O que significa 'IDE'?", respostas: ["Integrated Development Environment","Internal Data Element","Interface Design Example"], correta: 0 }
+      ],
+      difHard:[
+        { pergunta: "Qual é a complexidade de tempo de uma busca binária em um array ordenado?", respostas: ["O(n)","O(log n)","O(n²)"], correta: 1 },
+        { pergunta: "Em JavaScript, qual dessas declarações cria uma variável imutável?", respostas: ["var","let","const"], correta: 2 },
+        { pergunta: "Qual é a saída de 'console.log(typeof NaN)' em JavaScript?", respostas: ["number","NaN","InNaN"], correta: 0 },
+        { pergunta: "Em orientação a objetos, o que é 'encapsulamento'?", respostas: ["Esconder detalhes internos de uma classe","Herdar métodos de outra classe","Criar múltiplos objetos"], correta: 0 },
+        { pergunta: "Qual algoritmo é mais eficiente para ordenar um array grande já parcialmente ordenado?", respostas: ["Bubble Sort","Quick Sort","Insertion Sort"], correta: 2 }
+      ]
+    };
+
+    let difEscolhida = "";
+    let indPergunta = 0;
+
+    const quizDC = document.getElementById("quizDNC");
+    const botoesControle = document.getElementById("botoesControle");
+    const voltarBtn = document.getElementById("voltarBtn");
+    const recomecarBtn = document.getElementById("recomecarBtn");
+    const botaoDiff = document.getElementById("botaoDiff");
+    const mensagem = document.getElementById("mensagem");
+    const perguntaTopo = document.getElementById("perguntaTopo");
+
+    const progresso = {
+      difFacil: new Array(perguntas.difFacil.length).fill(false),
+      difMedio: new Array(perguntas.difMedio.length).fill(false),
+      difHard: new Array(perguntas.difHard.length).fill(false)
+    };
+
+    const difZeradas = { difFacil: false, difMedio: false, difHard: false };
+
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const recomecarGameBtn = document.getElementById("recomecarGameBtn");
+    const zerarGameBtn = document.getElementById("zerarGameBtn");
+
+    function diffSelect(dificuldade){
+      difEscolhida = dificuldade;
+      indPergunta = 0;
+      botaoDiff.style.display = "none";
+      botoesControle.style.display = "flex";
+      mensagem.innerText = "";
+      mostrarPergunta();
+    }
+
+    function montarCartas(pergAtual){
+      const letras = ['A','B','C'];
+      let html = `<div id="respostas">`;
+      pergAtual.respostas.forEach((resposta, i)=>{
+        html += `
+          <button class="respBtn" data-index="${i}">
+            <div class="top">
+              <span class="badge">${letras[i]}</span>
+            </div>
+            <div class="txt">${resposta}</div>
+          </button>
+        `;
+      });
+      html += `</div>`;
+      return html;
+    }
+
+    function mostrarPergunta(){
+      if(!difEscolhida) return;
+      const lista = perguntas[difEscolhida];
+      if(!lista || indPergunta >= lista.length){
+        quizDC.innerHTML = "";
+        perguntaTopo.innerText = `Você completou a dificuldade ${difEscolhida.replace("dif","")}.`;
+        mensagem.className = "ok";
+        mensagem.innerText = "Fim de jogo!";
+        return;
+      }
+
+      const pergAtual = lista[indPergunta];
+      perguntaTopo.innerText = pergAtual.pergunta;
+      quizDC.innerHTML = montarCartas(pergAtual);
+      mensagem.className = "";
+      mensagem.innerText = "";
+
+      const botoes = quizDC.querySelectorAll(".respBtn");
+      botoes.forEach(btn=>{
+        btn.addEventListener("click", function(){
+          const idx = Number(this.getAttribute("data-index"));
+          botoes.forEach(b=>b.disabled = true);
+          verifRes(idx);
+        });
+      });
+    }
+
+    function verifRes(indResposta){
+      const lista = perguntas[difEscolhida];
+      const pergAtual = lista[indPergunta];
+
+      if(indResposta === pergAtual.correta){
+        mensagem.className = "ok";
+        mensagem.innerText = "Parabéns, você acertou!";
+        progresso[difEscolhida][indPergunta] = true;
+      } else {
+        mensagem.className = "no";
+        mensagem.innerText = "Você errou... que pena!";
+      }
+
+      checarDificuldadeZerada(difEscolhida);
+
+      indPergunta++;
+      setTimeout(mostrarPergunta, 900);
+    }
+
+    function checarDificuldadeZerada(dificuldade){
+      if(progresso[dificuldade].every(v => v === true) && !difZeradas[dificuldade]){
+        difZeradas[dificuldade] = true;
+        mensagem.innerText = `Você zerou a dificuldade ${dificuldade.replace("dif","")}!`;
+        checarGameOver();
+      }
+    }
+
+    function checarGameOver(){
+      const todasZeradas = Object.values(difZeradas).every(v => v === true);
+      if(todasZeradas){
+        quizDC.innerHTML = "";
+        botoesControle.style.display = "none";
+        botaoDiff.style.display = "none";
+        gameOverScreen.style.display = "block";
+      }
+    }
+
+    recomecarBtn.addEventListener("click", ()=>{
+      if(!difEscolhida) return;
+      progresso[difEscolhida].fill(false);
+      difZeradas[difEscolhida] = false;
+      indPergunta = 0;
+      mensagem.innerText = "";
+      mostrarPergunta();
+    });
+
+    voltarBtn.addEventListener("click", ()=>{
+      difEscolhida = "";
+      indPergunta = 0;
+      quizDC.innerHTML = "";
+      botaoDiff.style.display = "flex";
+      botoesControle.style.display = "none";
+      gameOverScreen.style.display = "none";
+      mostrarStatus();
+      perguntaTopo.innerText = "Escolha uma dificuldade para começar.";
+    });
+
+    recomecarGameBtn.addEventListener("click", ()=>{
+      gameOverScreen.style.display = "none";
+      botaoDiff.style.display = "flex";
+      mostrarStatus();
+    });
+
+    zerarGameBtn.addEventListener("click", ()=>{
+      Object.keys(progresso).forEach(d => progresso[d].fill(false));
+      Object.keys(difZeradas).forEach(d => difZeradas[d] = false);
+      gameOverScreen.style.display = "none";
+      botaoDiff.style.display = "flex";
+      mostrarStatus();
+      perguntaTopo.innerText = "Escolha uma dificuldade para começar.";
+      mensagem.innerText = "Jogo zerado! Comece novamente.";
+    });
+
+    function mostrarStatus(){
+      let statusText = "Dificuldades zeradas: ";
+      const zeradas = Object.keys(difZeradas).filter(d => difZeradas[d]).map(d => d.replace("dif",""));
+      if(zeradas.length === 0) statusText += "nenhuma";
+      else statusText += zeradas.join(", ");
+      mensagem.innerText = statusText;
+    }
+
+    mostrarStatus();
+  </script>
+</body>
+</html>
