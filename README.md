@@ -1,5 +1,4 @@
 # Shoprate
-# Uma nova forma de avaliar produtos!
-
+Uma nova forma de avaliar produtos!
+# Status
 Em desenvolvimento...
-By João Victor "4rauj6". 2025
