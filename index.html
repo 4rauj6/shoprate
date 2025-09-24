@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+   <head>
+      <meta charset="UTF-8">
+   </head>
+   <body>
+      <div class="pages" id="cadastro_page">
+         <h4>Cadastre-se</h4>
+         <p>Faça parte da nossa comunidade!</p>
+         <form onsubmit="cadastrar(event)">
+            <label for="user_cadastro">Usuário:</label>
+            <input type="text" id="user_cadastro" name="user_cadastro">
+            <label for="email_cadastro">E-mail:</label>
+            <input type="email" id="email_cadastro" name="email_cadastro">
+            <label for="passw_cadastro">Senha</label>
+            <input type="password" id="passw_cadastro" name="passw_cadastro"><br><br>
+            <a href="#" onclick="slide_page('login_page')">Já tem uma conta?</a>
+            <button type="submit">Criar conta</button>
+         </form>
+      </div>
+      <div class="pages" id="login_page">
+         <h4>Login</h4>
+         <p>É otimo ter voce de volta!</p>
+         <form onsubmit="login(event)">
+            <label for="user_login">Usuário:</label>
+            <input type="text" id="user_login" name="user_login">
+            <label for="password_login">Senha:</label>
+            <input type="password" id="password_login" name="password_login">
+            <a href="#" onclick="slide_page('cadastro_page')">Não tem uma conta ainda?</a>
+            <button onclick="logout()">Excluir conta</button>
+            <button  class="btn_sign" type="submit">Entrar na sua conta</button>
+         </form>
+      </div>
+      <div class="pages" id="prep_page">
+         <h4>Comprou um produto e quer falar sobre ele? Aqui é o seu lugar!</h4>
+         <p>Veja análises, opiniões, fotos e experiencias sobre um produto que voce deseja comprar (ou aquele que já comprou).</p>
+         <a href="#" onclick="slide_page('cadastro_page')">Comece sua jornada aqui</a>
+      </div>
+      <div class="navbar" id="navbar">
+         <ul>
+            <li><a href="#" onclick="slide_page('homepage')">Shoprate</a></li>
+            <li><a href="#" onclick="slide_page('perfil_page')">Perfil</a></li>
+            <li><a href="#" onclick="slide_page('post_page')">Postagens</a></li>
+         </ul>
+      </div>
+      <div class="pages" id="homepage">
+         <h4>Homepage - Interação e troca de opiniões sobre diversos produtos de forma rápida e eficiente!</h4>
+         <a href="#" onclick="slide_page('make_post_page')">Faça uma avaliação!</a>
+      </div>
+      <div class="pages" id="make_post_page">
+         <p>Conte mais sobre sua avaliação:</p>
+         <textarea id="post_text"></textarea>
+      </div>
+      <div class="pages" id="perfil_page">
+         <img src="" id="foto_perfil">
+         <p id="name_perfil" class="name_perfil"></p>
+      </div>
+   </body>
+   <script src="shoprate.js"></script>
+   <link rel="stylesheet" href="shoprate.css">
+</html>
