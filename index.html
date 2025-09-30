@@ -35,13 +35,13 @@
       <div class="pages" id="prep_page">
          <h4>Comprou um produto e quer falar sobre ele? Aqui é o seu lugar!</h4>
          <p>Veja análises, opiniões, fotos e experiencias sobre um produto que voce deseja comprar (ou aquele que já comprou).</p>
-         <a href="#" onclick="slide_page('cadastro_page')">Comece sua jornada aqui</a>
+         <a href="#" onclick="slide_page('login_page')">Comece sua jornada aqui</a>
       </div>
       <div class="navbar" id="navbar">
          <ul>
             <li><a href="#" onclick="slide_page('homepage')">Shoprate</a></li>
             <li><a href="#" onclick="slide_page('perfil_page')">Perfil</a></li>
-            <li><a href="#" onclick="slide_page('post_page')">Postagens</a></li>
+            <li><a href="#" onclick="slide_page('post_page')">Suas postagens</a></li>
          </ul>
       </div>
       <div class="pages" id="homepage">
@@ -49,8 +49,17 @@
          <a href="#" onclick="slide_page('make_post_page')">Faça uma avaliação!</a>
       </div>
       <div class="pages" id="make_post_page">
+         <img id="preview_file" src="#" style="display: none"><br>
+         <input type="file" id="file_select" name="file_select" multiple><br>
+         <button onclick="post_submit()">Postar</button>
          <p>Conte mais sobre sua avaliação:</p>
          <textarea id="post_text"></textarea>
+         <p  class="post_msg" id="post_msg"></p>
+      </div>
+      <div class="pages" id="post_page">
+         <h3>Suas postagens anteriores:</h3>
+         <p id="status_msg">0 postagens feitas</p>
+         <div id="feed_page"></div>
       </div>
       <div class="pages" id="perfil_page">
          <img src="" id="foto_perfil">
