@@ -117,40 +117,133 @@ function post_submit() {
   const files_post = document.getElementById("file_select").files;
   const feed = document.getElementById("feed_page");
   const number_posts = document.getElementById("status_msg");
+  const post_msg = document.getElementById("post_msg");
 
   let feed_section = document.createElement("div");
   feed_section.className = "feed";
 
-  if (text_post.trim() !== "") {
+  let new_post = {
+    text: text_post.trim(),
+    images: []
+  };
+
+  if (new_post.text !== "") {
     let my_feed = document.createElement("p");
-    my_feed.textContent = text_post;
+    my_feed.textContent = new_post.text;
     feed_section.appendChild(my_feed);
   }
 
-  for (let i = 0; i < files_post.length; i++) {
-    let img_feed = document.createElement("img");
-    img_feed.src = URL.createObjectURL(files_post[i]);
-    img_feed.style.maxWidth = "200px";
-    img_feed.style.display = "block";
-    feed_section.appendChild(img_feed);
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
-  feed.appendChild(feed_section);
+  if (files_post.length > 0) {
+    const readers = [];
+    for (let i = 0; i < files_post.length; i++) {
+      readers.push(readFileAsDataURL(files_post[i]));
+    }
 
-  const conclusion_msg = document.getElementById("post_msg");
-  post_msg.textContent = "Postagem feita com sucesso!";
-  
-  let totalPosts = feed.children.length;
-  number_posts.textContent = `${totalPosts} postagem${totalPosts > 1 ? "s" : ""} feitas`;
+    Promise.all(readers)
+      .then(results => {
+        results.forEach(src => {
+          let img_feed = document.createElement("img");
+          img_feed.src = src;
+          img_feed.style.maxWidth = "200px";
+          img_feed.style.display = "block";
+          feed_section.appendChild(img_feed);
+          new_post.images.push(src);
+        });
+        
+        salvarPost(new_post);
+        feed.prepend(feed_section);
 
+        post_msg.textContent = "Postagem feita com sucesso!";
+
+        let totalPosts = feed.children.length;
+        number_posts.textContent = `${totalPosts} postagem${totalPosts > 1 ? "s" : ""} feitas`;
+      })
+      .catch(err => {
+        console.error("Erro ao ler imagens:", err);
+        alert("Ocorreu um erro ao processar as imagens.");
+      });
+  } else {
+    salvarPost(new_post);
+    feed.prepend(feed_section);
+    post_msg.textContent = "Postagem feita com sucesso!";
+    let totalPosts = feed.children.length;
+    number_posts.textContent = `${totalPosts} postagem${totalPosts > 1 ? "s" : ""} feitas`;
+  }
   document.getElementById("post_text").value = "";
   document.getElementById("file_select").value = "";
-  
+}
+
+function salvarPost(post) {
+  let posts = JSON.parse(localStorage.getItem("posts")) || [];
+  posts.push(post);
+  try {
+    localStorage.setItem("posts", JSON.stringify(posts));
+  } catch (e) {
+    console.error("Erro ao gravar no localStorage:", e);
+    alert("Não foi possível salvar a postagem (armazenamento cheio ou imagem muito grande).");
+  }
+}
+
+function carregarPosts() {
+  const feed = document.getElementById("feed_page");
+  const number_posts = document.getElementById("status_msg");
+
+  feed.innerHTML = "";
+
+  let posts = JSON.parse(localStorage.getItem("posts")) || [];
+
+  posts.forEach(p => {
+    let feed_section = document.createElement("div");
+    feed_section.className = "feed";
+
+    if (p.text) {
+      let my_feed = document.createElement("p");
+      my_feed.textContent = p.text;
+      feed_section.appendChild(my_feed);
+    }
+
+    if (p.images) {
+      p.images.forEach(src => {
+        let img_feed = document.createElement("img");
+        img_feed.src = src;
+        img_feed.style.maxWidth = "200px";
+        img_feed.style.display = "block";
+        feed_section.appendChild(img_feed);
+      });
+    }
+
+    feed.appendChild(feed_section);
+  });
+
+  number_posts.textContent = `${posts.length} postagem${posts.length > 1 ? "s" : ""} feitas`;
 }
 
 window.onload = function(){
   const user_logged = JSON.parse(localStorage.getItem("user_account"));
   if(user_logged && user_logged.username){
-    document.getElementById("name_perfil").textContent = `@${user_logged.username}`;
+    document.getElementById("name_perfil").innerText = `@${user_logged.username}`;
   }
+
+  carregarPosts();
+};
+
+function delete_post(){
+   localStorage.removeItem("posts");
+   
+   const user_feed = document.getElementById("feed_page");
+   user_feed.innerHTML = "";
+   const number_actual = document.getElementById("status_msg");
+  number_actual.textContent = "0 postagens feitas";
+  const post_msg = document.getElementById("post_msg");
+  
+  alert("suas postagens foram apagadas com sucesso!")
 }
